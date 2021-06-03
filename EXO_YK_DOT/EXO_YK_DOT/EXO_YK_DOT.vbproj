@@ -10,7 +10,8 @@
     <AssemblyName>EXO_YK_DOT</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>Windows</MyType>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -42,7 +43,54 @@
   <PropertyGroup>
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DocumentationFile>EXO_YK_DOT.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DocumentationFile>EXO_YK_DOT.xml</DocumentationFile>
+    <Optimize>true</Optimize>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EXO_BasicDLL">
+      <HintPath>..\..\..\..\..\9.1.0.37\x86\desarrollo\EXO_BasicDLL.dll</HintPath>
+    </Reference>
+    <Reference Include="EXO_CleanCOM">
+      <HintPath>..\..\..\..\..\9.1.0.37\x86\desarrollo\EXO_CleanCOM.dll</HintPath>
+    </Reference>
+    <Reference Include="EXO_DIAPI">
+      <HintPath>..\..\..\..\..\9.1.0.37\x86\desarrollo\EXO_DIAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="EXO_Generales">
+      <HintPath>..\..\..\..\..\9.1.0.37\x86\desarrollo\EXO_Generales.dll</HintPath>
+    </Reference>
+    <Reference Include="EXO_Log">
+      <HintPath>..\..\..\..\..\9.1.0.37\x86\desarrollo\EXO_Log.dll</HintPath>
+    </Reference>
+    <Reference Include="EXO_UIAPI">
+      <HintPath>..\..\..\..\..\9.1.0.37\x86\desarrollo\EXO_UIAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.SAPbobsCOM">
+      <HintPath>..\..\..\..\..\9.1.0.37\x86\desarrollo\Interop.SAPbobsCOM.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Interop.SAPbouiCOM">
+      <HintPath>..\..\..\..\..\9.1.0.37\x86\desarrollo\Interop.SAPbouiCOM.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -63,7 +111,8 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.vb" />
+    <Compile Include="EXO_DOT.vb" />
+    <Compile Include="EXO_OITM.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -99,7 +148,18 @@
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="XML_BD\UDO_EXO_DOT.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="XML_FILTROS\XML_FILTROS.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy /Y "$(TargetPath)" "C:\Desarrollo\9.1.0.37\x86\desarrollo\DLLs\$(TargetFileName)"
+copy /Y "$(TargetPath)" "\\Vmtimac\b1_shr\ExpertOne\Ficheros\10.Dll\EXT\$(TargetFileName)"
+</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
