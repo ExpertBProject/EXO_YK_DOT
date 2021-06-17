@@ -1,12 +1,12 @@
 ﻿Imports System.Xml
 Imports SAPbouiCOM
-Public Class EXO_OITM
+Public Class EXO_COMPRAS
     Inherits EXO_Generales.EXO_DLLBase
-
     Public Sub New(ByRef general As EXO_Generales.EXO_General, actualizar As Boolean)
         MyBase.New(general, actualizar)
 
     End Sub
+
     Public Overrides Function filtros() As EventFilters
         Dim filtrosXML As Xml.XmlDocument = New Xml.XmlDocument
         filtrosXML.LoadXml(objGlobal.Functions.leerEmbebido(Me.GetType(), "XML_FILTROS.xml"))
@@ -18,6 +18,7 @@ Public Class EXO_OITM
     Public Overrides Function menus() As XmlDocument
         Return Nothing
     End Function
+
     Public Overrides Function SBOApp_ItemEvent(ByRef infoEvento As EXO_Generales.EXO_infoItemEvent) As Boolean
         Dim res As Boolean = True
         Dim oForm As SAPbouiCOM.Form = SboApp.Forms.Item(infoEvento.FormUID)
@@ -30,7 +31,7 @@ Public Class EXO_OITM
             If infoEvento.InnerEvent = False Then
                 If infoEvento.BeforeAction = False Then
                     Select Case infoEvento.FormTypeEx
-                        Case "150"
+                        Case "143", "182"
                             Select Case infoEvento.EventType
                                 Case SAPbouiCOM.BoEventTypes.et_COMBO_SELECT
 
@@ -50,7 +51,7 @@ Public Class EXO_OITM
                     End Select
                 ElseIf infoEvento.BeforeAction = True Then
                     Select Case infoEvento.FormTypeEx
-                        Case "150"
+                        Case "143", "182"
                             Select Case infoEvento.EventType
                                 Case SAPbouiCOM.BoEventTypes.et_COMBO_SELECT
 
@@ -70,7 +71,7 @@ Public Class EXO_OITM
             Else
                 If infoEvento.BeforeAction = False Then
                     Select Case infoEvento.FormTypeEx
-                        Case "150"
+                        Case "143", "182"
                             Select Case infoEvento.EventType
                                 Case SAPbouiCOM.BoEventTypes.et_FORM_VISIBLE
 
@@ -85,7 +86,7 @@ Public Class EXO_OITM
                     End Select
                 Else
                     Select Case infoEvento.FormTypeEx
-                        Case "150"
+                        Case "143", "182"
                             Select Case infoEvento.EventType
                                 Case SAPbouiCOM.BoEventTypes.et_CHOOSE_FROM_LIST
 
@@ -115,15 +116,15 @@ Public Class EXO_OITM
             oForm = objGlobal.conexionSAP.SBOApp.Forms.Item(pVal.FormUID)
             oForm.Freeze(True)
             'Botón de DOT
-            oItem = oForm.Items.Add("btn_DOT", SAPbouiCOM.BoFormItemTypes.it_BUTTON)
-            oItem.Left = oForm.Items.Item("16").Left
-            oItem.Width = (oForm.Items.Item("2").Width)
+            oItem = oForm.Items.Add("btn_GDOT", SAPbouiCOM.BoFormItemTypes.it_BUTTON)
+            oItem.Left = oForm.Items.Item("2").Left + oForm.Items.Item("2").Width + 5
+            oItem.Width = oForm.Items.Item("2").Width + oForm.Items.Item("2").Height
             oItem.Top = oForm.Items.Item("2").Top
             oItem.Height = oForm.Items.Item("2").Height
             oItem.Enabled = False
             Dim oBtnAct As SAPbouiCOM.Button
             oBtnAct = CType(oItem.Specific, Button)
-            oBtnAct.Caption = "DOT"
+            oBtnAct.Caption = "Generar DOT"
             oItem.SetAutoManagedAttribute(SAPbouiCOM.BoAutoManagedAttr.ama_Editable, SAPbouiCOM.BoAutoFormMode.afm_Find, SAPbouiCOM.BoModeVisualBehavior.mvb_False)
             oItem.SetAutoManagedAttribute(SAPbouiCOM.BoAutoManagedAttr.ama_Editable, SAPbouiCOM.BoAutoFormMode.afm_Add, SAPbouiCOM.BoModeVisualBehavior.mvb_False)
             oItem.SetAutoManagedAttribute(SAPbouiCOM.BoAutoManagedAttr.ama_Editable, SAPbouiCOM.BoAutoFormMode.afm_Ok, SAPbouiCOM.BoModeVisualBehavior.mvb_True)
@@ -145,17 +146,46 @@ Public Class EXO_OITM
     End Function
     Private Function EventHandler_ItemPressed_After(ByRef objGlobal As EXO_Generales.EXO_General, ByRef pVal As EXO_Generales.EXO_infoItemEvent) As Boolean
         Dim oForm As SAPbouiCOM.Form = Nothing
-        Dim iRow As Integer = 0
+        Dim oRs As SAPbobsCOM.Recordset = CType(objGlobal.conexionSAP.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
+        Dim sSQL As String = ""
+        Dim sDocEntry As String = 0 : Dim sDocNum As String = "" : Dim sObjType As String = ""
 
+        Dim dtArt As System.Data.DataTable = Nothing
+        Dim dr As DataRow
         EventHandler_ItemPressed_After = False
 
         Try
             oForm = objGlobal.conexionSAP.SBOApp.Forms.Item(pVal.FormUID)
+            Dim sTable_Origen As String = CType(oForm.Items.Item("4").Specific, SAPbouiCOM.EditText).DataBind.TableName
+            Dim sTable_Origen_Lin As String = CType(CType(oForm.Items.Item("38").Specific, SAPbouiCOM.Matrix).Columns.Item("1").Cells.Item(1).Specific, SAPbouiCOM.EditText).DataBind.TableName
+            sDocEntry = oForm.DataSources.DBDataSources.Item(sTable_Origen).GetValue("DocEntry", 0).Trim
+            sDocNum = oForm.DataSources.DBDataSources.Item(sTable_Origen).GetValue("DocNum", 0).Trim
+            sObjType = oForm.DataSources.DBDataSources.Item(sTable_Origen).GetValue("ObjType", 0).Trim
+            If pVal.ItemUID = "btn_GDOT" Then 'Botón UDO Generar DOT
+                dtArt = New System.Data.DataTable
+                dtArt.Columns.Add("Articulo", GetType(String))
+                dtArt.Columns.Add("Descripcion", GetType(String))
+                dtArt.Columns.Add("Cantidad", GetType(Double))
+                'Recorremos las líneas agrupadas y guardamos en un datatable los artículos y las cantidades.
+                sSQL = "SELECT ""ItemCode"",""Dscription"", Sum(""Quantity"") ""Cantidad"" "
+                sSQL &= " FROM """ & sTable_Origen_Lin & """ WHERE DocEntry=" & sDocEntry
+                sSQL &= " GROUP BY ""ItemCode"", ""Dscription"" ORDER BY ""ItemCode"" "
+                oRs.DoQuery(sSQL)
+                If oRs.RecordCount > 0 Then
+                    For i = 0 To oRs.RecordCount - 1
+                        dr = dtArt.NewRow()
+                        dr("Articulo") = oRs.Fields.Item("ItemCode").Value.ToString
+                        dr("Descripcion") = oRs.Fields.Item("Dscription").Value.ToString
+                        dr("Cantidad") = CType(oRs.Fields.Item("Cantidad").Value.ToString, Double)
+                        dtArt.Rows.Add(dr)
+                        oRs.MoveNext()
+                    Next
 
-            If pVal.ItemUID = "btn_DOT" Then 'Botón UDO DOT
-                Dim sArticulo As String = oForm.DataSources.DBDataSources.Item("OITM").GetValue("ItemCode", 0).Trim
-                Dim sDescripcion As String = oForm.DataSources.DBDataSources.Item("OITM").GetValue("ItemName", 0).Trim
-                CargarUDODOT(objGlobal, sArticulo, sDescripcion)
+                    CargarUDOADOT(objGlobal, dtArt, sDocEntry, sDocNum, sObjType)
+
+                Else
+                    objGlobal.conexionSAP.SBOApp.StatusBar.SetText("(EXO) - Error inesperado. No encuentra las líneas del documento", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                End If
             End If
 
             EventHandler_ItemPressed_After = True
@@ -166,30 +196,32 @@ Public Class EXO_OITM
             Throw ex
         Finally
             EXO_CleanCOM.CLiberaCOM.Form(oForm)
+            EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oRs, Object))
         End Try
     End Function
 #Region "Métodos auxiliares"
-    Public Function CargarUDODOT(ByRef objGlobal As EXO_Generales.EXO_General, ByVal sArticulo As String, ByVal sDescripcion As String) As Boolean
+    Public Function CargarUDOADOT(ByRef objGlobal As EXO_Generales.EXO_General, ByRef dtArt As System.Data.DataTable, ByVal sDocEntry As String, ByVal sDocNum As String, ByVal sObjType As String) As Boolean
         Dim sSQL As String = ""
         Dim oRs As SAPbobsCOM.Recordset = Nothing
 
-        CargarUDODOT = False
+        CargarUDOADOT = False
 
         Try
-            EXO_DOT._sArticulo = sArticulo
-            EXO_DOT._sDescripcion = sDescripcion
-
+            EXO_ADOT._sDocEntry = sDocEntry.Trim
+            EXO_ADOT._sDocNum = sDocNum.Trim
+            EXO_ADOT._sObjType = sObjType.Trim
+            EXO_ADOT._dtArt = dtArt
             oRs = CType(objGlobal.conexionSAP.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
-            sSQL = " SELECT ""Code"" FROM ""@EXO_DOT"" WHERE ""Code""='" & sArticulo & "' "
+            sSQL = " SELECT ""DocEntry"" FROM ""@EXO_ADOT"" WHERE ""U_EXO_DOCENTRY""=" & sDocEntry.Trim & " and ""U_EXO_DOCNUM""='" & sDocNum.Trim & "' and ""U_EXO_OTYPE""='" & sObjType.Trim & "' "
             oRs.DoQuery(sSQL)
             If oRs.RecordCount > 0 Then
-                objGlobal.conexionSAP.cargaFormUdoBD_Clave("EXO_DOT", sArticulo)
-                'objGlobal.conexionSAP.SBOApp.OpenForm(BoFormObjectEnum.fo_UserDefinedObject, "EXO_DOT”, sArticulo.Trim)
+                Dim sEntry As String = oRs.Fields.Item("DocEntry").Value.ToString.Trim
+                objGlobal.conexionSAP.cargaFormUdoBD_Clave("EXO_ADOT", sEntry)
             Else
-                objGlobal.conexionSAP.cargaFormUdoBD("EXO_DOT")
+                objGlobal.conexionSAP.cargaFormUdoBD("EXO_ADOT")
             End If
 
-            CargarUDODOT = True
+            CargarUDOADOT = True
         Catch exCOM As System.Runtime.InteropServices.COMException
             Throw exCOM
         Catch ex As Exception

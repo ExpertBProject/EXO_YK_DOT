@@ -60,6 +60,7 @@ Public Class EXO_DOT
                 If infoEvento.InnerEvent = True Then
                     Select Case infoEvento.EventType
                         Case SAPbouiCOM.BoEventTypes.et_FORM_LOAD
+                        Case SAPbouiCOM.BoEventTypes.et_FORM_CLOSE
 
                         Case SAPbouiCOM.BoEventTypes.et_FORM_VISIBLE
                             If infoEvento.BeforeAction = False Then
@@ -103,6 +104,7 @@ Public Class EXO_DOT
 
         Return res
     End Function
+
     Private Function EventHandler_Form_Visible(ByRef pVal As EXO_Generales.EXO_infoItemEvent) As Boolean
         Dim oForm As SAPbouiCOM.Form = Nothing
         Dim oConds As SAPbouiCOM.Conditions = Nothing
@@ -119,7 +121,11 @@ Public Class EXO_DOT
                     If oForm.Mode = BoFormMode.fm_ADD_MODE Then
                         oForm.DataSources.DBDataSources.Item("@EXO_DOT").SetValue("Code", 0, _sArticulo)
                         oForm.DataSources.DBDataSources.Item("@EXO_DOT").SetValue("Name", 0, _sDescripcion)
+                    ElseIf oForm.Mode = BoFormMode.fm_FIND_MODE Then
+                        oForm.DataSources.DBDataSources.Item("@EXO_DOT").SetValue("Code", 0, _sArticulo)
+                        oForm.DataSources.DBDataSources.Item("@EXO_DOT").SetValue("Name", 0, _sDescripcion)
                     End If
+                    oForm.Items.Item("0_U_E").SetAutoManagedAttribute(SAPbouiCOM.BoAutoManagedAttr.ama_Editable, SAPbouiCOM.BoAutoFormMode.afm_All, SAPbouiCOM.BoModeVisualBehavior.mvb_False)
                 End If
             End If
 
@@ -157,9 +163,14 @@ Public Class EXO_DOT
                     If sSemana.Trim.Length = 1 Then
                         sSemana = "0" & sSemana
                     End If
-
                     sDOT = sSemana & sAnno
-                    CType(CType(oForm.Items.Item("0_U_G").Specific, SAPbouiCOM.Matrix).Columns.Item("C_0_3").Cells.Item(pVal.Row).Specific, SAPbouiCOM.EditText).Value = sDOT
+                    If sDOT.Length = 4 Then
+                        CType(CType(oForm.Items.Item("0_U_G").Specific, SAPbouiCOM.Matrix).Columns.Item("C_0_3").Cells.Item(pVal.Row).Specific, SAPbouiCOM.EditText).Value = sDOT
+                    Else
+                        CType(CType(oForm.Items.Item("0_U_G").Specific, SAPbouiCOM.Matrix).Columns.Item("C_0_3").Cells.Item(pVal.Row).Specific, SAPbouiCOM.EditText).Value = ""
+                    End If
+
+
                 End If
             End If
 
