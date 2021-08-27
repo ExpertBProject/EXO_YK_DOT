@@ -355,9 +355,9 @@ Public Class EXO_VENTAS
             sObjType = oForm.DataSources.DBDataSources.Item(sTable_Origen).GetValue("ObjType", 0).Trim
 
             'Recorremos las líneas agrupadas y guardamos en un datatable los artículos y las cantidades.
-            sSQL = "SELECT ""ItemCode"",""Dscription"", Sum(""Quantity"") ""Cantidad"" "
+            sSQL = "SELECT ""ItemCode"", Sum(""Quantity"") ""Cantidad"" "
             sSQL &= " FROM """ & sTable_Origen_Lin & """ WHERE DocEntry=" & sDocEntry
-            sSQL &= " GROUP BY ""ItemCode"", ""Dscription"" ORDER BY ""ItemCode"" "
+            sSQL &= " GROUP BY ""ItemCode"" ORDER BY ""ItemCode"" "
             oRs.DoQuery(sSQL)
             If oRs.RecordCount > 0 Then
                 oDI_COM = New EXO_DIAPI.EXO_UDOEntity(objGlobal.conexionSAP.refCompañia, "EXO_ADOT") 'UDO de Campos de SAP
