@@ -1,12 +1,11 @@
 ﻿Imports System.Xml
 Imports SAPbouiCOM
-Public Class EXO_COMPRAS
+Public Class EXO_INVENTARIO
     Inherits EXO_Generales.EXO_DLLBase
     Public Sub New(ByRef general As EXO_Generales.EXO_General, actualizar As Boolean)
         MyBase.New(general, actualizar)
 
     End Sub
-
     Public Overrides Function filtros() As EventFilters
         Dim filtrosXML As Xml.XmlDocument = New Xml.XmlDocument
         filtrosXML.LoadXml(objGlobal.Functions.leerEmbebido(Me.GetType(), "XML_FILTROS.xml"))
@@ -18,7 +17,6 @@ Public Class EXO_COMPRAS
     Public Overrides Function menus() As XmlDocument
         Return Nothing
     End Function
-
     Public Overrides Function SBOApp_ItemEvent(ByRef infoEvento As EXO_Generales.EXO_infoItemEvent) As Boolean
         Dim res As Boolean = True
         Dim oForm As SAPbouiCOM.Form = SboApp.Forms.Item(infoEvento.FormUID)
@@ -31,7 +29,7 @@ Public Class EXO_COMPRAS
             If infoEvento.InnerEvent = False Then
                 If infoEvento.BeforeAction = False Then
                     Select Case infoEvento.FormTypeEx
-                        Case "143", "182"
+                        Case "721", "720"
                             Select Case infoEvento.EventType
                                 Case SAPbouiCOM.BoEventTypes.et_COMBO_SELECT
 
@@ -51,7 +49,7 @@ Public Class EXO_COMPRAS
                     End Select
                 ElseIf infoEvento.BeforeAction = True Then
                     Select Case infoEvento.FormTypeEx
-                        Case "143", "182"
+                        Case "721", "720"
                             Select Case infoEvento.EventType
                                 Case SAPbouiCOM.BoEventTypes.et_COMBO_SELECT
 
@@ -71,7 +69,7 @@ Public Class EXO_COMPRAS
             Else
                 If infoEvento.BeforeAction = False Then
                     Select Case infoEvento.FormTypeEx
-                        Case "143", "182"
+                        Case "721", "720"
                             Select Case infoEvento.EventType
                                 Case SAPbouiCOM.BoEventTypes.et_FORM_VISIBLE
 
@@ -86,7 +84,7 @@ Public Class EXO_COMPRAS
                     End Select
                 Else
                     Select Case infoEvento.FormTypeEx
-                        Case "143", "182"
+                        Case "721", "720"
                             Select Case infoEvento.EventType
                                 Case SAPbouiCOM.BoEventTypes.et_CHOOSE_FROM_LIST
 
@@ -156,8 +154,8 @@ Public Class EXO_COMPRAS
 
         Try
             oForm = objGlobal.conexionSAP.SBOApp.Forms.Item(pVal.FormUID)
-            Dim sTable_Origen As String = CType(oForm.Items.Item("4").Specific, SAPbouiCOM.EditText).DataBind.TableName
-            Dim sTable_Origen_Lin As String = CType(CType(oForm.Items.Item("38").Specific, SAPbouiCOM.Matrix).Columns.Item("1").Cells.Item(1).Specific, SAPbouiCOM.EditText).DataBind.TableName
+            Dim sTable_Origen As String = CType(oForm.Items.Item("7").Specific, SAPbouiCOM.EditText).DataBind.TableName
+            Dim sTable_Origen_Lin As String = CType(CType(oForm.Items.Item("13").Specific, SAPbouiCOM.Matrix).Columns.Item("1").Cells.Item(1).Specific, SAPbouiCOM.EditText).DataBind.TableName
             sDocEntry = oForm.DataSources.DBDataSources.Item(sTable_Origen).GetValue("DocEntry", 0).Trim
             sDocNum = oForm.DataSources.DBDataSources.Item(sTable_Origen).GetValue("DocNum", 0).Trim
             sObjType = oForm.DataSources.DBDataSources.Item(sTable_Origen).GetValue("ObjType", 0).Trim
